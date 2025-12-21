@@ -40,40 +40,50 @@ import utils.data
 #         # mask_recon = sdf.mask_from_coeffs(coeffs)
 
 
-def _correlation_matrix(kidney_masks, featurepath, resultspath, i, j):
+def compute_correlations(project_path, debug=False):
 
-    # Define path
-    tmp_path = os.path.join(resultspath, 'tmp')
-    os.makedirs(tmp_path, exist_ok=True)
-    filepath = os.path.join(tmp_path, f"cov_{i}_{j}.npz")
-    if os.path.exists(filepath):
-        return
+    datapath = os.path.join(project_path, "stage_7_normalized_rotation_npz")
+    featurepath = os.path.join(project_path, "stage_8_features_sdf")
+    resultspath = os.path.join(project_path, "stage_9_shape_analysis")
 
-    # Get labels
-    label_i, _ = utils.data.parse_npz_dbfile(kidney_masks[i])
-    label_j, _ = utils.data.parse_npz_dbfile(kidney_masks[j])
+    logging.info("Computation of correlation matrices started")
+    t0 = time.time()
 
-    # Feature paths
-    sdf_file_i = os.path.join(featurepath, f"{label_i}.npz")
-    sdf_file_j = os.path.join(featurepath, f"{label_j}.npz")
+    # Get all baseline kidneys
+    kidney_masks, labels = _baseline_kidneys(datapath)
 
-    # Load masks
-    mask_norm_i = np.load(kidney_masks[i])['mask']
-    mask_norm_j = np.load(kidney_masks[j])['mask']
+    if debug:
+        n_debug = 3
+        kidney_masks = kidney_masks[:n_debug]
+        labels = labels[:n_debug]
 
-    # Load features
-    sdf_i = np.load(sdf_file_i)['coeffs'].flatten()
-    sdf_j = np.load(sdf_file_j)['coeffs'].flatten()
-    
-    # Compute cov
-    result = {
-        'dice': normalize.dice_coefficient(mask_norm_i, mask_norm_j),
-        'cov': normalize.covariance(mask_norm_i, mask_norm_j),
-        'cov_sdf': normalize.covariance(sdf_i, sdf_j),
-    }
+    # Build output
+    n = len(kidney_masks)
+    pairs = [(i, j) for i in range(n) for j in range(i, n)]
 
-    # Save to disk
-    np.savez_compressed(filepath, **result)
+    # Chunk output to produce less and larger tasks
+    # Otherwise dask takes too long to schedule
+    chunk_size = 1000
+    chunks = [pairs[i:i+chunk_size] for i in range(0, len(pairs), chunk_size)]
+
+    # Load sdf features
+    logging.info("Started scheduling tasks..")
+    tasks = [dask.delayed(_correlation_matrix_chunk)(kidney_masks, featurepath, resultspath, chunk) for chunk in chunks]
+
+    logging.info('Started computing tasks..')
+    dask.compute(*tasks)
+
+    t1 = time.time()
+    if debug:
+        n_tot = 1423 * 1424 / 2
+        n_done = n_debug * (n_debug + 1) / 2
+        dt = t1 - t0
+        dt_est = (n_tot * dt / n_done) / 3600 / 24
+        logging.info(f"Estimated computation time on 1 processor: {dt_est:.3f} days")
+    else:
+        logging.info(f"Computation time: {t1 - t0:.3f} seconds")
+
+    logging.info("Computation of correlation matrices completed.")
 
 
 def _baseline_kidneys(datapath):
@@ -88,39 +98,51 @@ def _baseline_kidneys(datapath):
     return kidney_masks, labels
 
 
-def compute_correlations(project_path, debug=False):
+def _correlation_matrix_chunk(kidney_masks, featurepath, resultspath, pairs):
+    [_correlation_matrix(kidney_masks, featurepath, resultspath, i, j) for (i,j) in pairs]
 
-    datapath = os.path.join(project_path, "stage_7_normalized_npz")
-    featurepath = os.path.join(project_path, "stage_8_features_sdf")
-    resultspath = os.path.join(project_path, "stage_9_shape_analysis")
 
-    logging.info("Computation of correlation matrices started")
-    t0 = time.time()
+def _correlation_matrix(kidney_masks, featurepath, resultspath, i, j):
 
-    # Get all baseline kidneys
-    kidney_masks, labels = _baseline_kidneys(datapath)
+    # Define path
+    tmp_path = os.path.join(resultspath, 'tmp')
+    os.makedirs(tmp_path, exist_ok=True)
+    filepath = os.path.join(tmp_path, f"cov_{i}_{j}.npz")
+    if os.path.exists(filepath):
+        return
 
-    if debug:
-        kidney_masks = kidney_masks[:20]
-        labels = labels[:20]
+    # # Get labels
+    # label_i, _ = utils.data.parse_npz_dbfile(kidney_masks[i])
+    # label_j, _ = utils.data.parse_npz_dbfile(kidney_masks[j])
 
-    # Build output
-    n = len(kidney_masks)
-    pairs = [(i, j) for i in range(n) for j in range(i, n)]
+    # # Feature paths
+    # sdf_file_i = os.path.join(featurepath, f"{label_i}.npz")
+    # sdf_file_j = os.path.join(featurepath, f"{label_j}.npz")
 
-    # Load sdf features
-    tasks = [dask.delayed(_correlation_matrix)(kidney_masks, featurepath, resultspath, i, j) for i,j in pairs]
-    dask.compute(*tasks)
+    # Load masks
+    mask_norm_i = np.load(kidney_masks[i])['mask']
+    mask_norm_j = np.load(kidney_masks[j])['mask']
 
-    t1 = time.time()
-    print(f"Computation time: {t1 - t0:.3f} seconds")
-    logging.info("Computation of correlation matrices completed.")
+    # # Load features
+    # sdf_i = np.load(sdf_file_i)['coeffs'].flatten()
+    # sdf_j = np.load(sdf_file_j)['coeffs'].flatten()
+    
+    # Compute cov
+    result = {
+        'dice': normalize.dice_coefficient(mask_norm_i, mask_norm_j),
+        'cov': normalize.covariance(mask_norm_i, mask_norm_j),
+        # 'cov_sdf': normalize.covariance(sdf_i, sdf_j),
+    }
+
+    # Save to disk
+    np.savez_compressed(filepath, **result)
+
 
 
 
 def build_correlation_matrices(project_path):
 
-    datapath = os.path.join(project_path, "stage_7_normalized_npz")
+    datapath = os.path.join(project_path, "stage_7_normalized_rotation_npz")
     resultspath = os.path.join(project_path, "stage_9_shape_analysis")
 
     os.makedirs(resultspath, exist_ok=True)
@@ -128,13 +150,13 @@ def build_correlation_matrices(project_path):
     _, labels = _baseline_kidneys(datapath)
 
     # Since these are baselines only, remove BL or V1 from the label
-    # labels = [s.replace('-BL', '').replace('-V1', '') for s in labels]
+    labels = [s.replace('-BL', '').replace('-V1', '') for s in labels]
 
     # Build output arrays
     n = len(labels)
     dice_arr = np.zeros((n, n))
     cov_arr = np.zeros((n, n))
-    cov_sdf_arr = np.zeros((n, n))
+    # cov_sdf_arr = np.zeros((n, n))
     for i in range(n):
         for j in range(i, n):
 
@@ -143,14 +165,14 @@ def build_correlation_matrices(project_path):
 
             dice_arr[i, j] = vals['dice']
             cov_arr[i, j] = vals['cov']
-            cov_sdf_arr[i, j] = vals['cov_sdf']
+            # cov_sdf_arr[i, j] = vals['cov_sdf']
 
             dice_arr[j, i] = vals['dice']
             cov_arr[j, i] = vals['cov']
-            cov_sdf_arr[j, i] = vals['cov_sdf']
+            # cov_sdf_arr[j, i] = vals['cov_sdf']
 
     cov_arr /= cov_arr.max()
-    cov_sdf_arr /= cov_sdf_arr.max()
+    #cov_sdf_arr /= cov_sdf_arr.max()
 
     # Save arrays as csv
     file = os.path.join(resultspath, f'normalized_kidney_dice.csv')
@@ -161,16 +183,16 @@ def build_correlation_matrices(project_path):
     df = pd.DataFrame(cov_arr, columns=labels, index=labels)
     df.to_csv(file)
 
-    file = os.path.join(resultspath, f'normalized_kidney_cov_sdf.csv')
-    df = pd.DataFrame(cov_sdf_arr, columns=labels, index=labels)
-    df.to_csv(file)
+    # file = os.path.join(resultspath, f'normalized_kidney_cov_sdf.csv')
+    # df = pd.DataFrame(cov_sdf_arr, columns=labels, index=labels)
+    # df.to_csv(file)
 
 
 
 
 def check_correlation_matrices(project_path):
 
-    datapath = os.path.join(project_path, "stage_7_normalized_npz")
+    datapath = os.path.join(project_path, "stage_7_normalized_rotation_npz")
     resultspath = os.path.join(project_path, "stage_9_shape_analysis")
 
     # Baseline kidney labels from masks
@@ -179,7 +201,7 @@ def check_correlation_matrices(project_path):
     files = [
         f'normalized_kidney_dice.csv',
         f'normalized_kidney_cov.csv',
-        f'normalized_kidney_cov_sdf.csv',
+        # f'normalized_kidney_cov_sdf.csv',
     ]
 
     for f in files:
@@ -205,7 +227,6 @@ def check_correlation_matrices(project_path):
 if __name__ == '__main__':
 
     DATA = r"C:\Users\md1spsx\Documents\Data\iBEAt_Build\kidneyvol"
-
     parser = argparse.ArgumentParser()
     parser.add_argument("--data", type=str, default=DATA, help="Project folder")
     parser.add_argument("--debug", action="store_true",  help="Debug")
@@ -213,11 +234,11 @@ if __name__ == '__main__':
 
     # Configure logging
     logging.basicConfig(
-        filename=os.path.join(DATA, 'log.txt'),      # log file name
+        filename=os.path.join(args.data, 'log.txt'),      # log file name
         level=logging.INFO,           # log level
         format='%(asctime)s - %(levelname)s - %(message)s',  # log format
     )
 
-    #compute_correlations(args.data)
-    build_correlation_matrices(args.data, args.debug)
-    #check_correlation_matrices(args.data)
+    # compute_correlations(args.data, args.debug)
+    # build_correlation_matrices(args.data)
+    check_correlation_matrices(args.data)

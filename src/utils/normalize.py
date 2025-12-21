@@ -1,6 +1,7 @@
 import numpy as np
 import vreg
 from scipy.ndimage import rotate
+from tqdm import tqdm
 
 
 # -------------------------------
@@ -63,7 +64,7 @@ def dice_coefficient(mask1: np.ndarray, mask2: np.ndarray) -> float:
     return 2.0 * intersection / size_sum
 
 
-def advance_dice_coefficient(
+def invariant_dice_coefficient(
     mask_ref: np.ndarray,
     mask_to_rotate: np.ndarray,
     axis: int = 2, #rotation in Z axis, (X,Y,Z)
@@ -71,6 +72,7 @@ def advance_dice_coefficient(
     angle_step: float = 1.0,
     return_angle: bool = False,
     return_mask: bool = False,
+    verbose: int = 0,
 ):
     """
     Rotate a 3D mask around a selected axis and compute the Dice score
@@ -92,13 +94,13 @@ def advance_dice_coefficient(
         If True, also return the best angle.
     return_mask : bool, default=False
         If True, also return the rotated mask at that angle.
+    verbose : int, default=0
+        If 0, no progress bar is shown. Any other value shows a progress bar.
 
     Returns
     -------
     best_dice : float
         Highest Dice score found.
-    (optionally) best_angle : float
-    (optionally) best_rotated_mask : np.ndarray
     """
 
     if mask_ref.shape != mask_to_rotate.shape:
@@ -131,7 +133,7 @@ def advance_dice_coefficient(
     best_angle = None
     best_rotated = None
 
-    for angle in angles:
+    for angle in tqdm(angles, desc='computing invariant dice', disable=verbose==0):
         rotated = rotate(
             mask_to_rotate,
             angle=angle,

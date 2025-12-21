@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #SBATCH --nodes=1
-#SBATCH --ntasks=1               # one task (one job process)
-#SBATCH --cpus-per-task=8       # 64 CPU cores for that task
-#SBATCH --mem=64G                # 64 GB for the whole node (default is per node)
+#SBATCH --ntasks=1           
+#SBATCH --cpus-per-task=8  
+#SBATCH --mem=16G      
 #SBATCH --time=72:00:00
 
 # The cluster will send an email to this address if the job fails or ends
@@ -51,5 +51,6 @@ USERNAME=$(whoami)
 PROJ="/mnt/parscratch/users/$USERNAME/iBEAt_Build/kidneyvol"
 
 # srun runs your program on the allocated compute resources managed by Slurm
-srun /users/md1spsx/.conda/envs/corr/bin/python "$PROJ/iBEAt-pipeline-kidneyvol/src/stage_8_build_features.py" --data="$PROJ"
+# srun /users/md1spsx/.conda/envs/corr/bin/python "$PROJ/iBEAt-pipeline-kidneyvol/src/stage_8_build_features.py" --data="$PROJ"
+# srun /users/md1spsx/.conda/envs/corr/bin/python "$PROJ/iBEAt-pipeline-kidneyvol/src/stage_7_normalize.py" --data="$PROJ"
 srun /users/md1spsx/.conda/envs/corr/bin/python "$PROJ/iBEAt-pipeline-kidneyvol/src/stage_9_build_correlation_matrices.py" --data="$PROJ"

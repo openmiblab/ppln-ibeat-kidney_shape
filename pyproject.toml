@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ibeat-kidney-shape"
+version = "0.0.0"
+dependencies = [
+  'numpy',
+  'dbdicom',
+  'miblab_dl',
+  'miblab_plot',
+  'scikit-learn',
+  'napari',
+  'tqdm', 
+  'matplotlib',
+  'moviepy',
+  'vreg',
+  'pydmr',
+  'pandas',
+  'scikit-image',
+  'numpyradiomics', 
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

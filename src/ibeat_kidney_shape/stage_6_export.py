@@ -167,38 +167,7 @@ def measure_shape(build_path, group, site=None):
         shutil.rmtree(dir)
 
 
-def measure_normalized_mask_shape(build_path):
 
-    maskpath = os.path.join(build_path, 'kidneyvol', 'stage_7_normalized')
-    measurepath = os.path.join(build_path, 'kidneyvol', 'stage_7_tmp')
-    os.makedirs(measurepath, exist_ok=True)
-
-    all_masks = db.series(maskpath)
-
-    for mask_series in tqdm(all_masks, desc='Extracting metrics'):
-
-        patient, series = mask_series[1], mask_series[3][0]
-
-        # If the results exist, skip
-        roi = 'kidney_left' if 'left' in series else 'kidney_right'
-        dmr_file = os.path.join(measurepath, f'{patient}_{roi}_results')
-        if os.path.exists(f'{dmr_file}.dmr.zip'):
-            continue
-
-        # Get mask volume (edited if it exists, else automated)
-        vol = db.volume(mask_series, verbose=0)
-
-        # Binary mask
-        mask = vol.values.astype(np.float32)
-        if np.sum(mask) == 0:
-            continue
-
-        roi_vol = vreg.volume(mask, vol.affine)
-        _measure_kidney_mask_shape(roi_vol, f"norm_{roi}", dmr_file, mask_series)
-
-    all_dmr_files = [os.path.join(measurepath, f) for f in os.listdir(measurepath) if f.endswith(".dmr.zip") and os.path.isfile(os.path.join(measurepath, f))]
-    dmr_file = os.path.join(build_path, 'kidneyvol', f'stage_7_normalized_measures')
-    pydmr.concat(all_dmr_files, dmr_file)
 
 
 

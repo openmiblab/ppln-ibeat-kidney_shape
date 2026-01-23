@@ -8,8 +8,8 @@ from utils import normalize, render, lb, sdf
 DIXONS = os.path.join(os.getcwd(), 'build', 'dixon', 'stage_2_data')
 SEGMENTATIONS = os.path.join(os.getcwd(), 'build', 'kidneyvol', 'stage_3_edit')
 
-patient = '4128_031'
-# patient = '4128_C08'
+# patient = '4128_031'
+patient = '4128_C08'
 # patient = '4128_033'
 # patient = '4128_064'
 # patient = '1128_038'
@@ -135,6 +135,6 @@ if __name__=='__main__':
 
     # display_surface_lb()
     # display_surface_sdf()
-    # display_normalized()
+    display_normalized()
     # display_multiple_normalized()
-    display_normalized_npz(NPZ_DIR)
+    # display_normalized_npz(NPZ_DIR)

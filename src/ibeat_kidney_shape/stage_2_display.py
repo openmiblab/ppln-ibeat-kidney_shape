@@ -1,13 +1,16 @@
 import os
 import logging
 import argparse
+from pathlib import Path
 
 import numpy as np
 import dbdicom as db
 from tqdm import tqdm
 from miblab_plot import mosaic_overlay
 
-from utils import data
+from ibeat_kidney_shape.utils import data
+
+MODULE_DIR = Path(__file__).resolve().parent
 
 
 def run(build):
@@ -32,8 +35,9 @@ def run(build):
 
 def run_db(db_data, db_masks, db_mosaics):
 
-    record = data.dixon_record()
+    record = data.dixon_record(MODULE_DIR)
     class_map = {1: "kidney_left", 2: "kidney_right"}
+    os.makedirs(db_mosaics, exist_ok=True)
 
     # Loop over the masks
     for mask in tqdm(db.series(db_masks), 'Displaying masks..'):
@@ -55,7 +59,7 @@ def run_db(db_data, db_masks, db_mosaics):
             rois = {roi: (mask_arr==idx).astype(np.int16) for idx, roi in class_map.items()}
 
             # Build mosaic and log success
-            mosaic_overlay(op_arr, rois, png_file, vmin=0, vmax=np.percentile(op_arr, 75), margin=[16,16,2], opacity=0.75)
+            mosaic_overlay(op_arr, rois, png_file, vmin=0, vmax=np.percentile(op_arr, 90), margin=[16,16,2], opacity=0.75)
             logging.info(f"Success building mosaic for {patient_id}, {study}, {sequence}.")
 
         except:

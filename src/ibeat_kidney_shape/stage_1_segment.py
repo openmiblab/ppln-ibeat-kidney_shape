@@ -1,16 +1,16 @@
 import os
 import logging
 import argparse
+from pathlib import Path
 
 import numpy as np
 import dbdicom as db
 import miblab_dl as dl
 import torch
 
-import utils.data
-from utils import edit
+from ibeat_kidney_shape.utils import data, edit
 
-
+MODULE_DIR = Path(__file__).resolve().parent
 
 # These need fully manual segmentation
 EXCLUDE = [ 
@@ -188,7 +188,7 @@ def run_db(db_data, db_masks):
     os.makedirs(db_masks, exist_ok=True)
 
     # List of selected dixon series
-    record = utils.data.dixon_record()
+    record = data.dixon_record(MODULE_DIR)
 
     # Get out phase series
     series = db.series(db_data)
@@ -201,7 +201,7 @@ def run_db(db_data, db_masks):
         patient = series_op[1]
         study = series_op[2][0]
         sequence = series_op[3][0][:-10]
-        selected_sequence = utils.data.dixon_series_desc(record, patient, study)
+        selected_sequence = data.dixon_series_desc(record, patient, study)
 
         # Input and output series
         series_ip = series_op[:3] + [(sequence + '_in_phase', 0)]

@@ -1,2 +1,1 @@
-# iBEAt-kidney-volumetry
-iBEAt kidney volumetry analysis
+# iBEAt kidney shape features

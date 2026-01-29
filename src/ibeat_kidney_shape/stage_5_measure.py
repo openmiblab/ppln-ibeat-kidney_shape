@@ -12,13 +12,13 @@ import numpyradiomics as npr
 def run(build):
 
     logging.basicConfig(
-        filename=os.path.join(build, 'kidney-shape', 'stage_5_measure.log'),
+        filename=os.path.join(build, 'kidney_shape', 'stage_5_measure.log'),
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s'
     )
 
-    dir_masks = os.path.join(build, 'kidney-shape', 'stage_3_edit') 
-    dir_output = os.path.join(build, 'kidney-shape', 'stage_5_measure')
+    dir_masks = os.path.join(build, 'kidney_shape', 'stage_3_edit') 
+    dir_output = os.path.join(build, 'kidney_shape', 'stage_5_measure')
     os.makedirs(dir_output, exist_ok=True)
 
     for database in ['Controls', 'Patients']:

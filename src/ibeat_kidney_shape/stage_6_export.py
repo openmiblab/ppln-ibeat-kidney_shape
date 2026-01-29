@@ -10,13 +10,13 @@ import pandas as pd
 def run(build):
 
     logging.basicConfig(
-        filename=os.path.join(build, 'kidney-shape', 'stage_6_export.log'),
+        filename=os.path.join(build, 'kidney_shape', 'stage_6_export.log'),
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s'
     )
 
-    dir_measure = os.path.join(build, 'kidney-shape', 'stage_5_measure')
-    dir_output = os.path.join(build, 'kidney-shape', 'stage_6_export')
+    dir_measure = os.path.join(build, 'kidney_shape', 'stage_5_measure')
+    dir_output = os.path.join(build, 'kidney_shape', 'stage_6_export')
     os.makedirs(dir_output, exist_ok=True)
 
     run_db(dir_measure, dir_output)

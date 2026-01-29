@@ -32,13 +32,13 @@ if __name__=='__main__':
     BUILD = r'C:\Users\md1spsx\Documents\Data\iBEAt_Build'
 
     logging.basicConfig(
-        filename=os.path.join(BUILD, 'kidney-shape', 'test_pipeline.log'),
+        filename=os.path.join(BUILD, 'kidney_shape', 'test_pipeline.log'),
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s'
     )
 
-    # stage_1_segment.run(BUILD)
-    # stage_2_display.run(BUILD)
-    # stage_4_display.run(BUILD)
+    stage_1_segment.run(BUILD)
+    stage_2_display.run(BUILD)
+    stage_4_display.run(BUILD)
     stage_5_measure.run(BUILD)
     stage_6_export.run(BUILD)

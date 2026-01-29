@@ -3,7 +3,7 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ibeat-kidney-shape"
+name = "ibeat-kidney_shape"
 version = "0.0.0"
 dependencies = [
   'numpy',

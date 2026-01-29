@@ -67,16 +67,16 @@ def edit_mask_with_napari(image_3d: np.ndarray, mask_3d: np.ndarray) -> np.ndarr
 
 def run(build):
 
-    dir_data = os.path.join(build, 'dixon', 'stage_5_clean_dixon_data') 
-    dir_masks = os.path.join(build, 'kidney-shape', 'stage_1_segment') 
-    dir_output = os.path.join(build, 'kidney-shape', 'stage_3_edit')
-    os.makedirs(dir_output, exist_ok=True)
-
     logging.basicConfig(
-        filename=os.path.join(dir_output, 'log.log'),
+        filename=os.path.join(build, 'kidney_shape', 'stage_3_edit.log'),
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s'
     )
+
+    dir_data = os.path.join(build, 'dixon', 'stage_5_clean_dixon_data') 
+    dir_masks = os.path.join(build, 'kidney_shape', 'stage_1_segment') 
+    dir_output = os.path.join(build, 'kidney_shape', 'stage_3_edit')
+    os.makedirs(dir_output, exist_ok=True)
 
     for database in ['Controls', 'Patients']:
         db_data = os.path.join(dir_data, database) 

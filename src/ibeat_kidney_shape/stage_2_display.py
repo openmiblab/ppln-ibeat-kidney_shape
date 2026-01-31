@@ -15,16 +15,16 @@ MODULE_DIR = Path(__file__).resolve().parent
 
 def run(build):
 
-    logging.basicConfig(
-        filename=os.path.join(build, 'kidney_shape', 'stage_2_display.log'),
-        level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s'
-    )
-
     dir_data = os.path.join(build, 'dixon', 'stage_5_clean_dixon_data') 
     dir_masks = os.path.join(build, 'kidney_shape', 'stage_1_segment') 
     dir_output = os.path.join(build, 'kidney_shape', 'stage_2_display')
     os.makedirs(dir_output, exist_ok=True)
+
+    logging.basicConfig(
+        filename=f"{dir_output}.log",
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
 
     for database in ['Controls', 'Patients']:
         db_data = os.path.join(dir_data, database) 
@@ -54,8 +54,8 @@ def run_db(db_data, db_masks, db_mosaics):
         
         try:
             # Load arrays and build ROIs
-            op_arr = db.volume(series_op).values
-            mask_arr = db.volume(mask).values
+            op_arr = db.volume(series_op).to_right_handed().values
+            mask_arr = db.volume(mask).to_right_handed().values
             rois = {roi: (mask_arr==idx).astype(np.int16) for idx, roi in class_map.items()}
 
             # Build mosaic and log success

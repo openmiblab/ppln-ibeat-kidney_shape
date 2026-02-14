@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=ff-arxv
+#SBATCH --job-name=ks-arxv
 #SBATCH --time=36:00:00
 #SBATCH --mem=4G
 #SBATCH --cpus-per-task=1

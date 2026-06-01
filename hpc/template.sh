@@ -54,3 +54,9 @@ PROJ="/mnt/parscratch/users/$USERNAME/iBEAt_Build/kidneyvol"
 # srun /users/md1spsx/.conda/envs/corr/bin/python "$PROJ/iBEAt-pipeline-kidneyvol/src/stage_8_build_features.py" --data="$PROJ"
 # srun /users/md1spsx/.conda/envs/corr/bin/python "$PROJ/iBEAt-pipeline-kidneyvol/src/stage_7_normalize.py" --data="$PROJ"
 srun /users/md1spsx/.conda/envs/corr/bin/python "$PROJ/iBEAt-pipeline-kidneyvol/src/stage_9_build_correlation_matrices.py" --data="$PROJ"
+
+
+LOCAL="/mnt/parscratch/users/$USERNAME/data/iBEAt_Build"
+REMOTE="login1:/shared/abdominal_imaging/Archive/iBEAt_Build"
+
+rsync -av --no-group --no-perms --delete "$LOCAL/kidney_shape" "$REMOTE"
